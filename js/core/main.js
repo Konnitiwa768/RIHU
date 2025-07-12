@@ -182,12 +182,12 @@ function update() {
     // 円の描画
     if (r.unlocked) {
       c.beginPath();
-      c.arc(300, 300, 35 + 35*(i-1), 0, (r.laps%1)*2*Math.PI);
+      c.arc(300, 300, 25 + 25*(i-1), 0, (r.laps%1)*2*Math.PI);
       c.strokeStyle = arcColors[i-1];
       c.lineWidth = 25;
       c.stroke();
       c.beginPath();
-      c.arc(300, 300, 35 + 35*(i-1), 0, (r.laps%1)*2*Math.PI);
+      c.arc(300, 300, 25 + 25*(i-1), 0, (r.laps%1)*2*Math.PI);
       c.strokeStyle = arcColorsTet[i-1];
       c.lineWidth = 35;
       c.stroke();
