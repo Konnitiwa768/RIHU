@@ -24,6 +24,9 @@ const rebirthCosts = [
   new ExpantaNum("1e21"),
   new ExpantaNum("1e24"),
   new ExpantaNum("1e27"),
+  new ExpantaNum("1e30"),
+  new ExpantaNum("1e36"),
+  new ExpantaNum("1e42"),
 ];
 
 // プレイヤー初期データ
@@ -57,7 +60,6 @@ function saveData() {
 }
 
 function loadData() {
-  // 初期化
   document.getElementById("lapUpgrades").innerHTML = "";
   for (let i = 0; i < RINGS; i++) {
     player[`r${i+1}`] = {
@@ -75,7 +77,6 @@ function loadData() {
       unlocked:  (i===0),
       unlockedUpgrade: (i===0),
     };
-    // ボタン作成
     document.getElementById("lapUpgrades").innerHTML += `
       <button class="lapBtn" id="lapBtn${i+1}" onclick="upgradeCircle(${i})"
         style="display:none; color:${arcColors[i]}; background-color:${arcColorsSec[i]}; border-color:${arcColors[i]}">
@@ -86,7 +87,6 @@ function loadData() {
       </button>`;
   }
 
-  // セーブデータがあれば復元
   const saved = JSON.parse(localStorage.getItem("circleRebirthSave") || "null");
   if (saved) {
     player.points = new ExpantaNum(saved.points);
@@ -103,13 +103,39 @@ function loadData() {
 }
 
 // --------------------------------------
-// 数字フォーマット
+// 数字フォーマット（日本語表記）
 // --------------------------------------
 function formatLong(num) {
   num = new ExpantaNum(num);
   if (num.lt(1e3)) return num.toFixed(0);
-  const tier = Math.floor(num.log10() / 3) - 1;
-  return LONG_NAMES[tier] || `e${(tier+1)*3}`;
+
+  const units = [
+    { value: 1e64, name: "無量大数" },
+    { value: 1e60, name: "不可思議" },
+    { value: 1e56, name: "那由他" },
+    { value: 1e52, name: "阿僧祇" },
+    { value: 1e48, name: "恒河沙" },
+    { value: 1e44, name: "極" },
+    { value: 1e40, name: "載" },
+    { value: 1e36, name: "正" },
+    { value: 1e32, name: "澗" },
+    { value: 1e28, name: "溝" },
+    { value: 1e24, name: "穣" },
+    { value: 1e20, name: "𥝱" },
+    { value: 1e16, name: "垓" },
+    { value: 1e12, name: "兆" },
+    { value: 1e8,  name: "億" },
+    { value: 1e4,  name: "万" },
+    { value: 1e3,  name: "千" },
+  ];
+
+  for (let i = 0; i < units.length; i++) {
+    if (num.gte(units[i].value)) {
+      return num.div(units[i].value).toFixed(1) + units[i].name;
+    }
+  }
+
+  return num.toFixed(0);
 }
 
 // --------------------------------------
@@ -129,7 +155,6 @@ function rebirth() {
     player.points = new ExpantaNum(0);
     player.rebirthPoints++;
     player.rebirthTier++;
-    // 円をリセット
     for (let i = 1; i <= RINGS; i++) {
       const r = player[`r${i}`];
       r.level = 0;
@@ -174,12 +199,10 @@ function update() {
 
   for (let i = 1; i <= RINGS; i++) {
     const r = player[`r${i}`];
-    // 効果・速度・価格更新
     r.effect = (r.lapsCeil - 1) * r.effectBase;
     r.speed  = r.speedInit + r.level * r.levelBase;
     r.price  = r.priceInit.mul(Math.pow(r.priceScale, r.level));
 
-    // 円の描画
     if (r.unlocked) {
       c.beginPath();
       c.arc(300, 300, 25 + 25*(i-1), 0, (r.laps%1)*2*Math.PI);
@@ -193,11 +216,10 @@ function update() {
       c.stroke();
     }
 
-    // アップグレード解放
     if (r.level >= 5 && player[`r${i+1}`]) {
       player[`r${i+1}`].unlockedUpgrade = true;
     }
-    // ボタン表示＆更新
+
     if (r.unlockedUpgrade) {
       r.unlocked = true;
       const btn = document.getElementById(`lapBtn${i}`);
@@ -209,12 +231,10 @@ function update() {
     }
   }
 
-  // 転生ボタン表示判定
   const nextCost = rebirthCosts[player.rebirthTier] || new ExpantaNum("1e999");
   document.getElementById("rebirthBtn").style.display =
     player.points.gte(nextCost) ? "inline-block" : "none";
 
-  // セーブ
   saveData();
 }
 
